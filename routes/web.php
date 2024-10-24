@@ -14,5 +14,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return "<h1>My Tailer</h1>";
+    echo "<h1>My Tailer</h1>";
 });
