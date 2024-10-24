@@ -7,78 +7,71 @@ use App\Http\Controllers\Api\BaseController as BaseController;
 use Illuminate\Http\Request;
 use App\Models\User; 
 use Illuminate\Support\Facades\Auth; 
-use Validator;
+use Validator;use Exception; Use DB;
+use Illuminate\Support\Str;
 
 class AccountController extends BaseController
 {
+    
     /**
-     * Display a listing of the resource.
+     * Create Account API
      */
-    public function index()
+    public function create_account(Request $request)
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [ 
-            'name' => 'required', 
-            'email' => 'required|email|unique:users', 
-            'password' => 'required', 
-            'c_password' => 'required|same:password', 
-        ]);
-        if ($validator->fails()) { 
-            return $this->sendError('Validation Error.', $validator->errors());
+        try {
+            $validator = Validator::make($request->all(), [ 
+                'name' => 'required', 
+                'email' => 'required|email|unique:users', 
+                'password' => 'required', 
+                'c_password' => 'required|same:password', 
+            ]);
+            if ($validator->fails()) { 
+                return $this->sendError('Validation Error.', $validator->errors());
+            }
+            DB::beginTransaction();
+            
+            $uuid = Str::uuid();
+            $input = $request->all();
+            $input['uuid'] = $uuid;
+            $user = User::create($input);
+            
+            $success['token'] =  $user->createToken('MyTailor')->plainTextToken; 
+            $success['user_id'] =  $user->id;
+            $success['name'] =  $user->name;
+            
+            DB::commit();
+            
+            return $this->sendResponse($success, 'User register successfully.');
+            
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Something Went Wrong.', $e->getMessage());
         }
-        $input = $request->all();
-        $user = User::create($input); 
-        $success['token'] =  $user->createToken('MyApp')->plainTextToken; 
-        $success['user_id'] =  $user->id;
-        $success['name'] =  $user->name;
-        
-        return $this->sendResponse($success, 'User register successfully.');
     }
-
     /**
-     * Display the specified resource.
+     * Login User API
      */
-    public function show(string $id)
+    public function login(Request $request)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required', 
+                'password' => 'required', 
+            ]);
+            if ($validator->fails()) { 
+                return $this->sendError('Validation Error.', $validator->errors());
+            }
+            $credentials = $request->only('email', 'password');
+            if (!Auth::attempt($credentials)) {
+                return $this->sendError('Invalid login credentials', $credentials);
+            }
+            $success['user'] = Auth::user();
+            $success['token'] =  $success['user']->createToken('MyApp')->plainTextToken;
+            
+            return $this->sendResponse($success, 'User Login successfully.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Something Went Wrong.', $e->getMessage());
+        }
     }
 }
