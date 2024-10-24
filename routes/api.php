@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::group(['prefix' => 'account'], function(){
+    Route::post('create', [App\Http\Controllers\Api\AccountController::class, 'create_account']);
+    Route::post('login', [App\Http\Controllers\Api\AccountController::class, 'login']);
+});
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
