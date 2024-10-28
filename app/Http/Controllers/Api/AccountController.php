@@ -181,4 +181,56 @@ class AccountController extends BaseController
             return $this->sendError('Profile image not uploaded.');
         }
     }
+    public function profile_update(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'name' => 'required',
+            'phone' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user = User::find($request->user_id);
+        if (is_null($user)) {
+            return $this->sendError('User not found.', $request->all());
+        }
+
+        $user->name = $request->name;
+        $user->phone = $request->phone;
+        $user->save();
+
+        $success['user'] = $user;
+        return $this->sendResponse($success, 'Profile updated successfully.');
+    }
+    public function change_password(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'old_password' => 'required',
+            'new_password' => 'required',
+            'confirm_password' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user = User::find($request->user_id);
+        if (is_null($user)) {
+            return $this->sendError('User not found.', $request->all());
+        }
+
+        if (!Hash::check($request->old_password, $user->password)) {
+            return $this->sendError('Old password is incorrect.', []);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        $success['user'] = $user;
+        return $this->sendResponse($success, 'Password changed successfully.');
+    }
 }

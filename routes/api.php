@@ -25,6 +25,10 @@ Route::group(['prefix' => 'account'], function(){
     Route::post('send/code/reset/password', [App\Http\Controllers\Api\AccountController::class, 'reset_password']);
 
     Route::post('profile/upload', [App\Http\Controllers\Api\AccountController::class, 'profile_upload']);
+    Route::post('profile/update', [App\Http\Controllers\Api\AccountController::class, 'profile_update']);
+
+    Route::post('change/password', [App\Http\Controllers\Api\AccountController::class, 'change_password']);
+
 
 });
 
