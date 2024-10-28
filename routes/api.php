@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -17,7 +19,17 @@ use Illuminate\Support\Facades\Route;
 Route::group(['prefix' => 'account'], function(){
     Route::post('create', [App\Http\Controllers\Api\AccountController::class, 'create_account']);
     Route::post('login', [App\Http\Controllers\Api\AccountController::class, 'login']);
+
+    Route::post('send/code', [App\Http\Controllers\Api\AccountController::class, 'send_code']);
+    Route::post('send/code/verify', [App\Http\Controllers\Api\AccountController::class, 'verify_code']);
+    Route::post('send/code/reset/password', [App\Http\Controllers\Api\AccountController::class, 'reset_password']);
+
+    Route::post('profile/upload', [App\Http\Controllers\Api\AccountController::class, 'profile_upload']);
+
 });
+
+
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
