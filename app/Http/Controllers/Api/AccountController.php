@@ -26,7 +26,7 @@ class AccountController extends BaseController
                 'c_password' => 'required|same:password', 
             ]);
             if ($validator->fails()) { 
-                return $this->sendError('Validation Error.', $validator->errors());
+                return $this->sendError('Validation Error.', $validator->errors(), 200);
             }
             DB::beginTransaction();
             
@@ -45,7 +45,7 @@ class AccountController extends BaseController
             
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->sendError('Something Went Wrong.', $e->getMessage());
+            return $this->sendError('Something Went Wrong.', $e->getMessage(), 200);
         }
     }
     /**
@@ -59,11 +59,11 @@ class AccountController extends BaseController
                 'password' => 'required', 
             ]);
             if ($validator->fails()) { 
-                return $this->sendError('Validation Error.', $validator->errors());
+                return $this->sendError('Validation Error.', $validator->errors(), 200);
             }
             $credentials = $request->only('email', 'password');
             if (!Auth::attempt($credentials)) {
-                return $this->sendError('Invalid login credentials', $credentials);
+                return $this->sendError('Invalid login credentials', $credentials, 200);
             }
             $success['user'] = Auth::user();
             $success['token'] =  $success['user']->createToken('MyApp')->plainTextToken;
@@ -71,7 +71,7 @@ class AccountController extends BaseController
             return $this->sendResponse($success, 'User Login successfully.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->sendError('Something Went Wrong.', $e->getMessage());
+            return $this->sendError('Something Went Wrong.', $e->getMessage(), 200);
         }
     }
 }
