@@ -5,17 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\BaseController as BaseController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\{Auth,Validator,DB,Password,Hash,Mail};
 use App\Models\User;
+<<<<<<< HEAD
 use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
  use Exception;
  use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
+=======
+>>>>>>> 3c814c03cb0f68cf8a0a93cd8d093db36a727098
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Mail;
+use Exception;
 
 
 class AccountController extends BaseController
@@ -33,8 +36,8 @@ class AccountController extends BaseController
                 'password' => 'required',
                 'c_password' => 'required|same:password',
             ]);
-            if ($validator->fails()) {
-                return $this->sendError('Validation Error.', $validator->errors());
+            if ($validator->fails()) { 
+                return $this->sendError('Validation Error.', $validator->errors(), 200);
             }
             DB::beginTransaction();
 
@@ -53,7 +56,7 @@ class AccountController extends BaseController
 
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->sendError('Something Went Wrong.', $e->getMessage());
+            return $this->sendError('Something Went Wrong.', $e->getMessage(), 200);
         }
     }
     /**
@@ -66,12 +69,12 @@ class AccountController extends BaseController
                 'email' => 'required',
                 'password' => 'required',
             ]);
-            if ($validator->fails()) {
-                return $this->sendError('Validation Error.', $validator->errors());
+            if ($validator->fails()) { 
+                return $this->sendError('Validation Error.', $validator->errors(), 200);
             }
             $credentials = $request->only('email', 'password');
             if (!Auth::attempt($credentials)) {
-                return $this->sendError('Invalid login credentials', $credentials);
+                return $this->sendError('Invalid login credentials', $credentials, 200);
             }
             $success['user'] = Auth::user();
             $success['token'] =  $success['user']->createToken('MyApp')->plainTextToken;
@@ -79,7 +82,7 @@ class AccountController extends BaseController
             return $this->sendResponse($success, 'User Login successfully.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->sendError('Something Went Wrong.', $e->getMessage());
+            return $this->sendError('Something Went Wrong.', $e->getMessage(), 200);
         }
     }
      /**
@@ -91,12 +94,12 @@ class AccountController extends BaseController
             'email' => 'required|email'
         ]);
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 200);
         }
 
         $user = User::where('email', $request->email)->first();
         if (is_null($user)) {
-            return $this->sendError('User not found.', $request->all());
+            return $this->sendError('User not found.', $request->all(), 200);
         }
 
         $code = rand(1000, 9999);
@@ -116,15 +119,15 @@ class AccountController extends BaseController
             'code' => 'required'
         ]);
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 200);
         }
 
         $user = User::where('id', $request->user_id)->first();
         if (is_null($user)) {
-            return $this->sendError('User not found.', $request->all());
+            return $this->sendError('User not found.', $request->all(), 200);
         }
         if($user->email_verification_code != $request->code) {
-            return $this->sendError('Code not Matached.', $request->all());
+            return $this->sendError('Code not Matached.', $request->all(), 200);
         }
         $success['user'] = $user;
         return $this->sendResponse($success, 'Code matched successfully.');
@@ -136,12 +139,12 @@ class AccountController extends BaseController
             'password' => 'required|min:8'
         ]);
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 200);
         }
 
         $user = User::find($request->user_id);
         if (is_null($user)) {
-            return $this->sendError('User not found.', $request->all());
+            return $this->sendError('User not found.', $request->all(), 200);
         }
 
         $user->password = Hash::make($request->password);
@@ -159,7 +162,7 @@ class AccountController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 200);
         }
 
         $user = User::find($request->user_id);
@@ -172,7 +175,6 @@ class AccountController extends BaseController
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('profile_images', $fileName, 'public/profiles');
 
-            // Update the user's profile_image path
             $user->profile_image = $filePath;
             $user->save();
 
@@ -191,12 +193,12 @@ class AccountController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 200);
         }
 
         $user = User::find($request->user_id);
         if (is_null($user)) {
-            return $this->sendError('User not found.', $request->all());
+            return $this->sendError('User not found.', $request->all(), 200);
         }
 
         $user->name = $request->name;
@@ -216,16 +218,16 @@ class AccountController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors(), 200);
         }
 
         $user = User::find($request->user_id);
         if (is_null($user)) {
-            return $this->sendError('User not found.', $request->all());
+            return $this->sendError('User not found.', $request->all(), 200);
         }
 
         if (!Hash::check($request->old_password, $user->password)) {
-            return $this->sendError('Old password is incorrect.', []);
+            return $this->sendError('Old password is incorrect.', $request->all(), 200);
         }
 
         $user->password = Hash::make($request->new_password);
