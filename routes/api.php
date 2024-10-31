@@ -29,6 +29,8 @@ Route::group(['prefix' => 'account'], function(){
 
     Route::post('change/password', [App\Http\Controllers\Api\AccountController::class, 'change_password']);
 
+    Route::post('create/shop', [App\Http\Controllers\Api\AccountController::class, 'createShop']);
+
 
 });
 

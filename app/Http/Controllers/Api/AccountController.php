@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\BaseController as BaseController;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
  use Exception;
@@ -232,5 +233,38 @@ class AccountController extends BaseController
 
         $success['user'] = $user;
         return $this->sendResponse($success, 'Password changed successfully.');
+    }
+    public function createShop(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'shop_name' => 'required|string|max:255',
+            'famous_name' => 'nullable',
+            'city' => 'required',
+            'shop_address' => 'required',
+            'shop_open_time' => 'required',
+            'shop_close_time' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 200);
+        }
+
+        try {
+            $id = str::uuid();
+
+            $shop = Shop::create([
+                'uuid' => $id,
+                'shop_name' => $request->shop_name,
+                'famous_name' => $request->famous_name,
+                'city' => $request->city,
+                'shop_address' => $request->shop_address,
+                'shop_open_time' => Carbon::createFromFormat('h:i A', $request->shop_open_time)->format('H:i:s'),
+                'shop_close_time' => Carbon::createFromFormat('h:i A', $request->shop_close_time)->format('H:i:s'),
+            ]);
+
+            return response()->json(['message' => 'Shop created successfully', 'shop' => $shop], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create shop', 'message' => $e->getMessage()], 200);
+        }
     }
 }
